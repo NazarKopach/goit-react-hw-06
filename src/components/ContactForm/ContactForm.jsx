@@ -1,15 +1,33 @@
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { addProfileSchema } from "../../utils/schemas";
 import styles from "./ContactsForm.module.css";
+import { nanoid } from "nanoid";
+import { useSelector, useDispatch } from "react-redux";
+import { addContact } from "../../redux/contactsSlice";
+import { selectContacts } from "../../redux/contactsSlice";
 
 const initialValues = {
   name: "",
   number: "",
 };
 
-const ContactForm = ({ onAddContact }) => {
+const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
+
   const handleSubmit = (values, actions) => {
-    onAddContact(values);
+    const duplicate = contacts.some(
+      (contact) => contact.name.toLowerCase() === values.name.toLowerCase()
+    );
+    if (duplicate) {
+      actions.setFieldError("name", "Contact already exists!");
+      return;
+    }
+    const finalUser = {
+      ...values,
+      id: nanoid(),
+    };
+    dispatch(addContact(finalUser));
     actions.resetForm();
   };
 
@@ -39,7 +57,7 @@ const ContactForm = ({ onAddContact }) => {
           <Field
             className={styles.input}
             name="number"
-            type="phone"
+            type="tel"
             placeholder="+380*******"
           />
           <ErrorMessage
@@ -55,4 +73,5 @@ const ContactForm = ({ onAddContact }) => {
     </Formik>
   );
 };
+
 export default ContactForm;
